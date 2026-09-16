@@ -1,0 +1,1 @@
+"""Database package for StudyGuard AI (SQLite + SQLAlchemy)."""
