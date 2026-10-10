@@ -49,3 +49,40 @@ export function distanceCalibrate(action) {
 }
 
 export const VIDEO_FEED_URL = '/api/video/feed';
+
+// Session APIs
+export function getActiveStudent() {
+  return getJSON('/api/students/active');
+}
+
+export function startSession(studentId) {
+  return postJSON('/api/sessions/start', {
+    student_id: studentId,
+  });
+}
+
+export function getActiveSession() {
+  return getJSON('/api/sessions/active');
+}
+
+export function endSession(sessionId) {
+  return postJSON(`/api/sessions/${sessionId}/end`, {});
+}
+
+// Dashboard APIs
+export function getDashboardOverview() {
+  return getJSON('/api/dashboard/overview');
+}
+
+export function getDashboardTrend(days = 7) {
+  return getJSON(`/api/dashboard/trend?days=${days}`);
+}
+
+export function getDashboardRecent(limit = 5) {
+  return getJSON(`/api/dashboard/recent?limit=${limit}`);
+}
+
+// Current live session + latest behavior/focus
+export function getLiveSessionStatus() {
+  return getJSON('/api/sessions/live');
+}
