@@ -7,9 +7,9 @@ StudyGuard AI is a smart learning-monitoring web application that uses
 **Computer Vision, Artificial Intelligence, and Learning Analytics** to
 analyze a student's study behavior through real-time webcam monitoring.
 
-The system is being developed to monitor signals such as **face
+The system monitors signals such as **face
 presence, facial landmarks, head pose, gaze, attention, drowsiness,
-phone usage, posture, and screen distance**, and eventually combine
+phone usage, posture, and screen distance**, and combines
 these signals into a **Focus Score**, real-time alerts, session
 analytics, and study-history insights.
 
@@ -42,49 +42,39 @@ behavior during a study session.
 
 # 🚀 Current Project Status
 
-The **core live monitoring system is currently functional**.
+All planned modules are implemented and integrated end-to-end
+(webcam → AI analysis → alerts → database → dashboard).
 
 ## ✅ Working
 
-  Feature                              Status
-  ------------------------------------ ------------
-  Web Application                      ✅ Working
-  React + Vite Frontend                ✅ Working
-  FastAPI Backend                      ✅ Working
-  Frontend--Backend Integration        ✅ Working
-  Webcam Integration                   ✅ Working
-  Live Camera Feed                     ✅ Working
-  Face Detection                       ✅ Working
-  Face Confidence                      ✅ Working
-  Face Landmarks                       ✅ Working
-  478-Point Face Landmarks             ✅ Working
-  Head Pose Detection                  ✅ Working
-  Gaze Detection                       ✅ Working
-  Basic Attention Estimation           ✅ Working
-  Face Present / Not Detected Status   ✅ Working
-  Live AI Monitoring Interface         ✅ Working
-  Backend Health API                   ✅ Working
-  Video / Monitoring Status API        ✅ Working
+  Feature                                        Status
+  ---------------------------------------------- ----------
+  React + Vite frontend, FastAPI backend         ✅ Working
+  Webcam + live camera feed                      ✅ Working
+  Face detection + confidence                    ✅ Working
+  478-point face landmarks                       ✅ Working
+  Head pose (yaw / pitch / roll)                 ✅ Working
+  Gaze direction + calibration                   ✅ Working
+  Looking outside the screen (left/right/up/down)✅ Working
+  Attention estimation + live focus score        ✅ Working
+  Drowsiness detection                           ✅ Working
+  Phone detection (EfficientDet-Lite2)           ✅ Working
+  Posture detection                              ✅ Working
+  Screen distance detection                      ✅ Working
+  Real-time alerts (saved per session)           ✅ Working
+  Study session start / end                      ✅ Working
+  SQLite database (students, sessions, logs)     ✅ Working
+  Students page (create, list, set active)       ✅ Working
+  Session History (list + session details)      ✅ Working
+  Analytics (weekly trends + per-session)        ✅ Working
+  Alerts page (filter by type / session)         ✅ Working
+  Dashboard                                      ✅ Working
 
-## 🚧 In Development
+## 🔧 Continuous improvement
 
-  Feature                      Status
-  ---------------------------- -------------------
-  Advanced Gaze Calibration    🚧 In Development
-  Drowsiness Detection         🚧 In Development
-  Phone Detection              🚧 In Development
-  Posture Detection            🚧 In Development
-  Screen Distance Detection    🚧 In Development
-  Learning Behavior Analysis   🚧 In Development
-  Focus Score                  🚧 In Development
-  Real-Time Alerts             🚧 In Development
-  Study Session Management     🚧 In Development
-  Database Integration         🚧 In Development
-  Session Data Storage         🚧 In Development
-  Session History              🚧 In Development
-  Student Management           🚧 In Development
-  Analytics                    🚧 In Development
-  Final Dashboard              🚧 In Development
+AI accuracy depends on lighting, camera angle and the person, so the
+detection thresholds are meant to be tuned (see
+[Tuning & configuration](#-tuning--configuration)).
 
 ------------------------------------------------------------------------
 
@@ -150,10 +140,11 @@ StudyGuard-AI/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── ...
+│   │   ├── api/            (backend client)
+│   │   ├── components/     (charts, session detail)
+│   │   ├── pages/          (Dashboard, Live, Analytics, History, Alerts, Students)
+│   │   ├── styles/
+│   │   └── utils/
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── vite.config.js
@@ -225,8 +216,6 @@ The backend contains a database layer intended to store:
 -   Alerts
 -   Session history
 
-Database integration and session-level analytics are currently under
-development.
 
 ------------------------------------------------------------------------
 
@@ -298,8 +287,9 @@ Possible gaze directions include:
 -   DOWN
 -   CENTER
 
-Gaze detection is currently implemented and is being refined for better
-calibration and accuracy.
+Use the **Calibrate Gaze** button (look straight at the screen) before a
+session. Eye movement alone, with the head still facing the screen, is
+also detected as looking off-screen.
 
 ------------------------------------------------------------------------
 
@@ -331,19 +321,23 @@ possible signs of:
 -   Prolonged eye closure
 -   Reduced alertness
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 ## 8. Phone Detection
 
-Phone detection is intended to identify whether a mobile phone is
-visible during a study session.
+Phone detection identifies whether a mobile phone is visible during a
+study session, using an on-device object detector
+(**EfficientDet-Lite2, int8**, via MediaPipe). A phone that stays in view
+for a few seconds raises a **Phone detected** alert.
 
-The feature will help identify possible distractions caused by
-mobile-phone usage.
+The model file lives in `backend/models/efficientdet_lite2_int8.tflite`.
+A diagnostic tool is available:
+`python scripts/phone_debug.py` (stop the backend first, only one
+program can use the webcam).
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
@@ -358,7 +352,7 @@ Possible signals include:
 -   Head position
 -   Poor or abnormal posture
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
@@ -367,7 +361,7 @@ Possible signals include:
 The system will estimate whether the student is sitting too close to or
 too far from the screen.
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
@@ -376,7 +370,7 @@ too far from the screen.
 One of the main goals of StudyGuard AI is to generate an overall **Study
 Focus Score**.
 
-The final score is planned to combine multiple behavioral signals:
+The live focus score combines multiple behavioral signals:
 
 ``` text
 Face Presence
@@ -397,19 +391,16 @@ Screen Distance
   Focus Score
 ```
 
-The exact scoring logic will be finalized after the individual
-monitoring modules become stable.
-
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 # 🔔 Real-Time Alerts
 
-The system is planned to generate alerts when potentially distracting or
-abnormal study behavior is detected.
+The system generates alerts while a study session is active. They are
+saved in the database and shown on the **Alerts** page.
 
-Possible alerts include:
+Alert types:
 
 -   ⚠️ Student Not Detected
 -   ⚠️ Looking Away
@@ -419,15 +410,16 @@ Possible alerts include:
 -   ⚠️ Too Close to Screen
 -   ⚠️ Low Attention
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 # ⏱️ Study Session Management
 
-The final system will support complete study sessions.
+Complete study sessions are supported. Alerts and behavior logs are
+recorded only while a session is **active** (press *Start Study Session*).
 
-### Expected flow
+### Flow
 
 ``` text
 Start Session
@@ -447,7 +439,7 @@ Save Session
 Generate Analytics
 ```
 
-A session is expected to contain information such as:
+A session contains information such as:
 
 -   Start time
 -   End time
@@ -460,13 +452,13 @@ A session is expected to contain information such as:
 -   Away time
 -   Other behavioral events
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 # 🗄️ Database
 
-The database layer is intended to store:
+The database layer stores:
 
 -   Student records
 -   Study sessions
@@ -475,7 +467,7 @@ The database layer is intended to store:
 -   Alerts
 -   Session history
 
-Database integration is currently being developed.
+Database: SQLite (file is created automatically and is not committed to Git).
 
 > **Important:** Never commit personal student data, private records,
 > passwords, API keys, or other sensitive information to GitHub.
@@ -484,10 +476,8 @@ Database integration is currently being developed.
 
 # 📈 Analytics Dashboard
 
-The final dashboard is planned to provide a visual representation of
-study performance.
-
-Planned analytics include:
+The dashboard, analytics and session-history pages show study
+performance:
 
 -   Study Duration
 -   Focus Score
@@ -499,15 +489,13 @@ Planned analytics include:
 -   Daily / Weekly Trends
 -   Session History
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 # 👨‍🎓 Student Management
 
-The final application is planned to support multiple students / users.
-
-Planned functionality:
+The application supports multiple students (one is "active" at a time):
 
 -   Student registration
 -   Student profile
@@ -516,31 +504,40 @@ Planned functionality:
 -   Session history
 -   Performance tracking
 
-**Status:** 🚧 In Development
+**Status:** ✅ Working
 
 ------------------------------------------------------------------------
 
 # 🔌 Backend API
 
-The backend is built using **FastAPI**.
+The backend is built using **FastAPI**. Interactive documentation with
+every endpoint is available at `http://127.0.0.1:8000/docs`.
 
-Current development endpoints include:
+Main endpoints:
 
 ``` text
-GET /api/health
-GET /api/video/status
+GET  /api/health
+GET  /api/video/feed                  live camera stream
+GET  /api/video/status                live AI signals
+POST /api/ai/gaze/calibrate
+POST /api/ai/distance/calibrate
+
+GET  /api/students            POST /api/students
+POST /api/students/active     GET  /api/students/active
+
+POST /api/sessions/start      POST /api/sessions/{id}/end
+GET  /api/sessions            GET  /api/sessions/active
+
+GET  /api/analytics/sessions/{id}
+GET  /api/analytics/weekly?days=7
+GET  /api/alerts?session_id=&limit=
+GET  /api/dashboard/overview  (+ recent, trend)
 ```
 
 ### Backend
 
 ``` text
 http://127.0.0.1:8000
-```
-
-### FastAPI Documentation
-
-``` text
-http://127.0.0.1:8000/docs
 ```
 
 ------------------------------------------------------------------------
@@ -555,10 +552,15 @@ The frontend is developed using **React + Vite**.
 http://localhost:5173
 ```
 
-### Live Monitoring Page
+### Pages
 
 ``` text
-http://localhost:5173/live
+/            Dashboard
+/live        Live Monitoring
+/analytics   Analytics
+/history     Session History
+/alerts      Alerts
+/students    Students
 ```
 
 ------------------------------------------------------------------------
@@ -663,6 +665,42 @@ Open:
 ``` text
 http://localhost:5173/live
 ```
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# 🧪 Run the tests
+
+``` bash
+cd backend
+.venv\Scripts\activate          # Windows (macOS/Linux: source .venv/bin/activate)
+pip install -r requirements.txt
+python -m pytest tests -q
+```
+
+------------------------------------------------------------------------
+
+# 🎛️ Tuning & configuration
+
+Settings are read from environment variables (defaults are in
+`backend/config.py`). Example for PowerShell, set before `uvicorn`:
+
+``` powershell
+$env:SG_PHONE_CONFIDENCE_THRESHOLD="0.30"
+$env:SG_GAZE_IRIS_X_THRESHOLD="0.15"
+uvicorn main:app --reload
+```
+
+  Variable                           Meaning
+  ---------------------------------- -------------------------------------------
+  `SG_PHONE_DETECTOR_MODEL`          path to the phone detector `.tflite` model
+  `SG_PHONE_CONFIDENCE_THRESHOLD`    lower = detects more phones, more false alarms
+  `SG_GAZE_IRIS_X_THRESHOLD`         higher = needs a bigger sideways eye movement
+  `SG_GAZE_IRIS_Y_THRESHOLD`         higher = needs a bigger up/down eye movement
+  `SG_ALERT_PHONE_SECONDS`           seconds a phone must stay visible before an alert
+  `SG_ALERT_COOLDOWN_SECONDS`        minimum gap between two alerts of the same type
+  `SG_CAMERA_INDEX`                  which webcam to use (default 0)
 
 ------------------------------------------------------------------------
 
@@ -988,6 +1026,24 @@ Make sure you are inside:
 frontend/
 ```
 
+## Camera is black / 0 FPS
+
+An old backend process may still be holding the webcam. Stop the backend
+(`Ctrl + C`), end leftover `python.exe` / `uvicorn` tasks in Task Manager,
+close other apps using the camera, then start the backend again.
+
+## Tests fail with "httpx2 package required"
+
+``` bash
+pip install -r requirements.txt
+```
+
+## Alerts are not appearing
+
+Alerts are saved only while a study session is active. Press
+**Start Study Session**; a phone must stay visible for a few seconds, and
+the same alert type has a cooldown.
+
 ## AI Model Not Loading
 
 Check:
@@ -1088,24 +1144,16 @@ behavior, attention, or performance.
 # ⭐ Project Status
 
 ``` text
-🟢 Core Web Application       Working
-🟢 Webcam Monitoring          Working
-🟢 Face Detection             Working
-🟢 Face Landmarks             Working
-🟢 Head Pose                  Working
-🟢 Gaze Detection             Working
-🟢 Basic Attention            Working
-
-🟡 Drowsiness                 In Development
-🟡 Phone Detection            In Development
-🟡 Posture Detection          In Development
-🟡 Screen Distance            In Development
-🟡 Focus Score                In Development
-🟡 Alerts                     In Development
-🟡 Study Sessions             In Development
-🟡 Database                   In Development
-🟡 Analytics                 In Development
-🟡 Final Dashboard            In Development
+🟢 Web app (React + FastAPI)    Working
+🟢 Webcam, face, landmarks      Working
+🟢 Head pose + gaze             Working
+🟢 Drowsiness                   Working
+🟢 Phone detection              Working
+🟢 Posture + screen distance    Working
+🟢 Focus score + alerts         Working
+🟢 Sessions + database          Working
+🟢 Students, history, analytics Working
+🟢 Dashboard                    Working
 ```
 
 ------------------------------------------------------------------------
