@@ -52,17 +52,21 @@ DIRECTION_DOWN = "LOOKING_DOWN"
 DIRECTION_AWAY = "AWAY"
 DIRECTION_UNKNOWN = "UNKNOWN"
 
-# Head pose model points (object-space, millimetres) mapped to face-puppet
-# landmark indices. Positive Z approaches the camera; X is positive toward the
-# person's right (image left); Y is positive downward — Astrakhantsev pattern.
+# Head pose model points (object-space, millimetres) mapped to face landmark
+# indices, expressed in the OpenCV *camera* convention so that a head looking
+# straight at the camera gives yaw = pitch = roll = 0:
+#   X → toward image right, Y → downward, Z → away from the camera
+#   (the nose tip is the closest point to the camera, so other points have +Z).
+# NOTE: the previous model had Y and Z flipped (a 180° rotation about X). That
+# made neutral pitch read about ±180° and made yaw read ~0 for every head turn.
 HEAD_MODEL_INDICES: Tuple[int, int, int, int, int, int] = (1, 152, 33, 263, 61, 291)
 HEAD_MODEL_POINTS: Tuple[Tuple[float, float, float], ...] = (
-    (0.0, 0.0, 0.0),          # 1    nose bridge
-    (0.0, -63.6, -12.5),      # 152  chin
-    (-43.3, 32.7, -26.0),     # 33   left eye outer (subject's left, image right)
-    (43.3, 32.7, -26.0),      # 263  right eye outer (subject's right, image left)
-    (-28.9, -28.9, -24.1),    # 61   left mouth corner
-    (28.9, -28.9, -24.1),     # 291  right mouth corner
+    (0.0, 0.0, 0.0),          # 1    nose tip
+    (0.0, 63.6, 12.5),        # 152  chin
+    (-43.3, -32.7, 26.0),     # 33   eye outer corner (image left)
+    (43.3, -32.7, 26.0),      # 263  eye outer corner (image right)
+    (-28.9, 28.9, 24.1),      # 61   mouth corner (image left)
+    (28.9, 28.9, 24.1),       # 291  mouth corner (image right)
 )
 
 
@@ -455,8 +459,16 @@ class GazeTracker:
         v_part = 0.0
         denom = 0.0
         if have_iris:
-            h_part += w_iris * iris_x
-            v_part += w_iris * iris_y
+            # The raw iris offsets are tiny (a full sideways glance moves the
+            # iris only ~10-15 % of the eye width), so scale them by the
+            # configured iris thresholds. Without this an eyes-only glance
+            # away from the screen (head still facing it) never reached the
+            # direction threshold and stayed "looking at screen".
+            # reading.iris_offset_* = 2 * (shift / eye size), hence the factor 2.
+            iris_h = _clamp(iris_x / (2.0 * s.gaze_iris_x_threshold))
+            iris_v = _clamp(iris_y / (2.0 * s.gaze_iris_y_threshold))
+            h_part += w_iris * iris_h
+            v_part += w_iris * iris_v
             denom += w_iris
         if have_head:
             # solvePnP pitch is + when the nose points down; flip so a

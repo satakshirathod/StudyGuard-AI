@@ -223,7 +223,10 @@ class TestConfidenceAndSerialization:
     def test_boxes_empty_when_not_detected(self):
         fake = FakeObjectDetector(detections=[])
         det = PhoneDetector(make_settings(), object_detector=fake)
-        r = det.update(_DUMMY_FRAME)
+        # The state is smoothed over several frames, so the very first frame
+        # is still UNKNOWN; feed enough frames for it to settle.
+        for _ in range(6):
+            r = det.update(_DUMMY_FRAME)
         assert r.boxes == []
         assert r.detected is False
 

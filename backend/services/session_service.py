@@ -115,12 +115,14 @@ class SessionService:
         )
         distances = [l.distance_cm for l in logs if l.distance_cm is not None]
         session.avg_distance_cm = round(mean(distances), 1) if distances else None
-        posture = [l for l in logs if l.posture_state is not None]
-        session.posture_score = (
-            round(mean({"GOOD": 100, "MODERATE": 50, "POOR": 0}[l.posture_state] for l in posture), 1)
-            if posture
-            else None
-        )
+        # UNKNOWN (no face / not measurable) is skipped instead of raising KeyError.
+        posture_points = {"GOOD": 100, "MODERATE": 50, "POOR": 0}
+        posture = [
+            posture_points[l.posture_state]
+            for l in logs
+            if l.posture_state in posture_points
+        ]
+        session.posture_score = round(mean(posture), 1) if posture else None
         if session.started_at is not None and session.ended_at is not None:
             session.duration_seconds = int((session.ended_at - session.started_at).total_seconds())
 

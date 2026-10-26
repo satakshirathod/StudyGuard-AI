@@ -184,8 +184,8 @@ def get_settings() -> Settings:
         gaze_away_duration=_env_int("SG_GAZE_AWAY_DURATION", 10),
         gaze_calibration_samples=_env_int("SG_GAZE_CALIBRATION_SAMPLES", 30),
         gaze_calibration_accept_range=_env_float("SG_GAZE_CALIBRATION_ACCEPT_RANGE", 0.30),
-        gaze_iris_x_threshold=_env_float("SG_GAZE_IRIS_X_THRESHOLD", 0.10),
-        gaze_iris_y_threshold=_env_float("SG_GAZE_IRIS_Y_THRESHOLD", 0.10),
+        gaze_iris_x_threshold=_env_float("SG_GAZE_IRIS_X_THRESHOLD", 0.15),
+        gaze_iris_y_threshold=_env_float("SG_GAZE_IRIS_Y_THRESHOLD", 0.22),
         gaze_yaw_threshold=_env_float("SG_GAZE_YAW_THRESHOLD", 12.0),
         gaze_pitch_threshold=_env_float("SG_GAZE_PITCH_THRESHOLD", 10.0),
         gaze_iris_weight=_env_float("SG_GAZE_IRIS_WEIGHT", 0.6),
@@ -229,9 +229,9 @@ def get_settings() -> Settings:
         phone_enabled=_env_bool("SG_PHONE_ENABLED", True),
         show_phone_overlay=_env_bool("SG_SHOW_PHONE_OVERLAY", False),
         phone_detector_model=os.getenv(
-            "SG_PHONE_DETECTOR_MODEL", str(models_dir / "efficientdet_lite0.tflite")
+               "SG_PHONE_DETECTOR_MODEL", str(models_dir / "efficientdet_lite2_int8.tflite")
         ),
-        phone_confidence_threshold=_env_float("SG_PHONE_CONFIDENCE_THRESHOLD", 0.5),
+        phone_confidence_threshold=_env_float("SG_PHONE_CONFIDENCE_THRESHOLD", 0.30),
         phone_label_filter=os.getenv("SG_PHONE_LABEL_FILTER", "phone"),
         phone_smoothing_window=_env_int("SG_PHONE_SMOOTHING_WINDOW", 5),
         phone_change_threshold=_env_float("SG_PHONE_CHANGE_THRESHOLD", 0.6),

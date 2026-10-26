@@ -321,3 +321,63 @@ def test_reading_defaults_are_safe():
     assert r.valid is False
     assert r.iris_ok is False
     assert r.head_ok is False
+
+# ── regression: an upright, camera-facing head must read ~0°, not ±180° ──────
+
+# Independent of HEAD_MODEL_POINTS: a physically correct face in camera
+# coordinates (X right, Y down, Z away; nose tip closest to the camera).
+_PHYSICAL_FACE_MM = np.array(
+    [
+        (0.0, 0.0, 0.0),        # nose tip
+        (0.0, 63.6, 12.5),      # chin (below the nose)
+        (-43.3, -32.7, 26.0),   # eye corner, image left (above the nose)
+        (43.3, -32.7, 26.0),    # eye corner, image right
+        (-28.9, 28.9, 24.1),    # mouth corner, image left
+        (28.9, 28.9, 24.1),     # mouth corner, image right
+    ],
+    np.float64,
+)
+
+
+def _real_face(yaw_deg=0.0, pitch_deg=0.0):
+    face = make_eye_face()
+    rvec = np.array([[np.deg2rad(pitch_deg)], [np.deg2rad(yaw_deg)], [0.0]], np.float64)
+    img, _ = cv2.projectPoints(_PHYSICAL_FACE_MM, rvec, _TV, _CAM, np.zeros(5))
+    for idx, (u, v) in zip(HEAD_MODEL_INDICES, img.reshape(-1, 2)):
+        face.landmarks[idx] = (u / FRAME_W, v / FRAME_H, 0.0)
+    return face
+
+
+class TestRealisticHeadPose:
+    def test_neutral_head_reads_near_zero(self):
+        r = GazeEstimator(None, FRAME_W, FRAME_H).compute_reading(_real_face())
+        assert abs(r.head_pitch_deg) < 5
+        assert abs(r.head_yaw_deg) < 5
+
+    def test_looking_down_is_positive_pitch(self):
+        r = GazeEstimator(None, FRAME_W, FRAME_H).compute_reading(_real_face(pitch_deg=25))
+        assert 15 < r.head_pitch_deg < 35
+
+    def test_head_turn_is_detected_in_yaw(self):
+        r = GazeEstimator(None, FRAME_W, FRAME_H).compute_reading(_real_face(yaw_deg=20))
+        assert 12 < r.head_yaw_deg < 28
+
+
+# ── eyes-only glance away from the screen (head still facing the screen) ─────
+
+class TestEyesOnlyGlance:
+    def _run(self, face):
+        t = GazeTracker(make_settings(), FRAME_W, FRAME_H)
+        r = None
+        for _ in range(6):
+            r = t.update(face)
+        return r
+
+    def test_eyes_glance_left_with_head_straight_is_detected(self):
+        assert self._run(make_head_face(iris_dx=0.12)).direction == DIRECTION_LEFT
+
+    def test_eyes_glance_right_with_head_straight_is_detected(self):
+        assert self._run(make_head_face(iris_dx=-0.12)).direction == DIRECTION_RIGHT
+
+    def test_small_iris_jitter_stays_at_screen(self):
+        assert self._run(make_head_face(iris_dx=0.04, iris_dy=0.06)).direction == DIRECTION_AT_SCREEN

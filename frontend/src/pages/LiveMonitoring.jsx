@@ -12,10 +12,10 @@ import {
 
 const GAZE_LABELS = {
   LOOKING_AT_SCREEN: 'AT SCREEN',
-  LOOKING_LEFT: 'LEFT',
-  LOOKING_RIGHT: 'RIGHT',
-  LOOKING_UP: 'UP',
-  LOOKING_DOWN: 'DOWN',
+  LOOKING_LEFT: 'OFF SCREEN · LEFT',
+  LOOKING_RIGHT: 'OFF SCREEN · RIGHT',
+  LOOKING_UP: 'OFF SCREEN · UP',
+  LOOKING_DOWN: 'OFF SCREEN · DOWN',
   AWAY: 'AWAY',
   UNKNOWN: 'UNKNOWN',
 };
@@ -311,7 +311,7 @@ export default function LiveMonitoring() {
       {/* =========================================
           LEFT: VIDEO + SESSION CONTROLS
           ========================================= */}
-      <div>
+      <div className="live-left">
 
         {cameraOk ? (
           <div className="video-frame">
@@ -476,7 +476,7 @@ export default function LiveMonitoring() {
       {/* =========================================
           RIGHT: STATUS PANEL
           ========================================= */}
-      <div className="card">
+      <div className="card live-right">
 
         <h3>Learning Signals</h3>
 
@@ -736,27 +736,6 @@ export default function LiveMonitoring() {
           >
             Drowsiness detection is disabled in
             configuration.
-          </div>
-        )}
-
-        {drowsiness.ear != null && (
-          <div className="signal-row">
-
-            <div className="signal-name">
-              EAR
-              <small>avg left/right</small>
-            </div>
-
-            <span
-              className={`badge ${
-                dState === 'DROWSY'
-                  ? 'badge-crit'
-                  : 'badge-unknown'
-              }`}
-            >
-              {drowsiness.ear.toFixed(3)}
-            </span>
-
           </div>
         )}
 

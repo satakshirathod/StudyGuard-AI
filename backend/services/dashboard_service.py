@@ -13,9 +13,6 @@ from utils.logger import get_logger
 
 _log = get_logger("studygard.services.dashboard")
 
-_TODAY = date.today()
-
-
 class DashboardService:
     def __init__(self, log_interval_seconds: float = 2.0) -> None:
         self._interval = log_interval_seconds
@@ -30,7 +27,8 @@ class DashboardService:
 
     def today_overview(self, db: Session, student_id: int) -> dict:
         """Aggregate today's real study data for the active student."""
-        start = datetime.combine(_TODAY, datetime.min.time())
+        today = date.today()
+        start = datetime.combine(today, datetime.min.time())
         active = self.active_session(db)
         active_elapsed = 0
         if active is not None and active.started_at is not None:
@@ -63,7 +61,7 @@ class DashboardService:
 
         return {
             "student_id": student_id,
-            "today": _TODAY.isoformat(),
+            "today": today.isoformat(),
             "session_count": len(sessions),
             "active_session": active.to_dict() if active else None,
             "study_seconds": duration,
@@ -84,7 +82,7 @@ class DashboardService:
 
     def trend(self, db: Session, student_id: int, days: int = 7) -> list[dict]:
         """Per-day study/total and average focus for the last ``days`` days."""
-        today = _TODAY
+        today = date.today()
         results = []
         for offset in range(days - 1, -1, -1):
             day = today - timedelta(days=offset)
